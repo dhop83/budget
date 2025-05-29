@@ -651,6 +651,11 @@
         // Update category name
         function updateCategoryName(type, categoryId, newName) {
             budgetData[type][categoryId].name = newName;
+            if (type === 'income') {
+                renderIncomeCategories();  
+            } else {
+                renderExpenseCategories();
+            }
             updateSummary();
         }
 
@@ -669,7 +674,11 @@
         // Add item to category
         function addItemToCategory(type, categoryId) {
             budgetData[type][categoryId].items.push({ description: '', amount: 0 });
-            renderCategoryItems(type, categoryId);
+            if (type === 'income') {
+                renderIncomeCategories();
+            } else {
+                renderExpenseCategories();
+            }
             updateSummary();
         }
 
@@ -679,7 +688,11 @@
             if (budgetData[type][categoryId].items.length === 0) {
                 budgetData[type][categoryId].items.push({ description: '', amount: 0 });
             }
-            renderCategoryItems(type, categoryId);
+            if (type === 'income') {
+                renderIncomeCategories();
+            } else {
+                renderExpenseCategories();
+            }
             updateSummary();
         }
 
