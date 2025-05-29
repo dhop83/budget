@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero-Based Budget Planner</title>
+    <title>Use Money Well LLC - Zero-Based Budget Planner</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         /* --- [Brand Colors & Fonts] --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c5530 0%, #1a4d1f 100%);
             min-height: 100vh;
             color: #333;
         }
@@ -39,7 +39,7 @@
         .logo {
             font-size: 2.5rem;
             font-weight: bold;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, #2c5530, #4a7c59);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -53,12 +53,12 @@
         .brand-name {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #333;
+            color: #2c5530;
             letter-spacing: 0.5px;
         }
         .brand-tagline {
             font-size: 1.05rem;
-            color: #764ba2;
+            color: #4a7c59;
             font-weight: 500;
         }
         .controls {
@@ -81,8 +81,8 @@
         }
         .month-input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #2c5530;
+            box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
         }
         .btn {
             padding: 12px 20px;
@@ -98,12 +98,12 @@
             gap: 8px;
         }
         .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, #2c5530, #4a7c59);
             color: white;
         }
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
         }
         .btn-success {
             background: linear-gradient(45deg, #56ab2f, #a8e6cf);
@@ -160,8 +160,8 @@
             transition: all 0.3s ease;
         }
         .category-group:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+            border-color: #2c5530;
+            box-shadow: 0 4px 15px rgba(44, 85, 48, 0.1);
         }
         .category-header {
             display: flex;
@@ -180,14 +180,14 @@
         .category-name:focus {
             outline: none;
             background: white;
-            border: 2px solid #667eea;
+            border: 2px solid #2c5530;
             border-radius: 8px;
             padding: 5px 10px;
         }
         .category-total {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #667eea;
+            color: #2c5530;
             background: white;
             padding: 8px 15px;
             border-radius: 10px;
@@ -208,8 +208,8 @@
         }
         .item-input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #2c5530;
+            box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
         }
         .item-input:first-child {
             flex: 2;
@@ -252,7 +252,7 @@
             font-weight: bold;
         }
         .amount-neutral {
-            color: #667eea;
+            color: #2c5530;
             font-weight: bold;
         }
         .progress-bar {
@@ -264,7 +264,7 @@
         }
         .progress-fill {
             height: 100%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, #2c5530, #4a7c59);
             transition: width 0.3s ease;
             border-radius: 5px;
         }
@@ -323,12 +323,12 @@
             font-size: 1rem;
             background: rgba(255,255,255,0.92);
             border-radius: 16px;
-            box-shadow: 0 2px 12px rgba(102,126,234,0.07);
+            box-shadow: 0 2px 12px rgba(44,85,48,0.07);
         }
         .footer .footer-logo {
             font-size: 1.6rem;
             font-weight: 700;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, #2c5530, #4a7c59);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -392,8 +392,8 @@
             <div class="branding-block">
                 <div class="logo">💰</div>
                 <div class="brand-info">
-                    <div class="brand-name">Zero-Based Budget Planner</div>
-                    <div class="brand-tagline">Take Control of Every Dollar</div>
+                    <div class="brand-name">Use Money Well LLC</div>
+                    <div class="brand-tagline">Zero-Based Budget Planner</div>
                 </div>
             </div>
             <div class="controls">
@@ -503,12 +503,12 @@
         </div>
 
         <footer class="footer">
-            <div class="footer-logo">💰 Zero-Based Budget Planner</div>
+            <div class="footer-logo">💰 Use Money Well LLC</div>
             <div>
-                <span>Professional Budget Planning Tool</span>
+                <span>Professional Budget Planning Solutions</span>
             </div>
             <div style="margin-top:6px;font-size:0.93rem;color:#888;">
-                &copy; 2025 Zero-Based Budget Planner. All rights reserved.
+                &copy; 2025 Use Money Well LLC. All rights reserved.
             </div>
         </footer>
     </div>
@@ -785,12 +785,4 @@
             let total = 0;
             Object.values(budgetData[type]).forEach(category => {
                 category.items.forEach(item => {
-                    total += parseFloat(item.amount) || 0;
-                });
-            });
-            return total;
-        }
-
-        // Export to Excel
-        function exportToExcel() {
-            const
+                    total += parse
