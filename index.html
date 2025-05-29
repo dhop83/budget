@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Use Money Well LLC - Zero-Based Budget Planner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .budget-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .summary-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .income-section, .expense-section {
+            margin-bottom: 30px;
+        }
+
+        .category-group {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .category-group:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .category-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .category-total {
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .item-row:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+        }
+
+        .item-input {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .item-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .amount-input {
+            text-align: right;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.1rem;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.3rem;
+            padding-top: 20px;
+            margin-top: 10px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .amount-positive {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .amount-negative {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+
+        .amount-neutral {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .zero-based-indicator {
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .zero-achieved {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: var(--success-color);
+            border: 2px solid var(--success-color);
+        }
+
+        .zero-not-achieved {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: var(--danger-color);
+            border: 2px solid var(--danger-color);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .month-input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .item-row {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-primary);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">💰 Use Money Well LLC</div>
+            <div class="tagline">Professional Zero-Based Budget Planner</div>
+            <div class="controls">
+                <div class="month-selector">
+                    <label for="currentMonth">Budget Month:</label>
+                    <input type="month" id="currentMonth" class="month-input">
+                </div>
+                <button class="btn btn-success" onclick="exportToExcel()">
+                    📊 Export to Excel
+                </button>
+                <button class="btn btn-primary" onclick="replicateMonth()">
+                    📅 Replicate to Future Months
+                </button>
+                <button class="btn btn-primary" onclick="saveTemplate()">
+                    💾 Save as Template
+                </button>
+                <button class="btn btn-primary" onclick="loadTemplate()">
+                    📁 Load Template
+                </button>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <main class="budget-section">
+                <div class="income-section">
+                    <h2 class="section-title">💵 Income Sources</h2>
+                    <div id="incomeCategories"></div>
+                    <button class="btn btn-success btn-small" onclick="addIncomeCategory()">+ Add Income Category</button>
+                </div>
+
+                <div class="expense-section">
+                    <h2 class="section-title">💳 Expenses & Allocations</h2>
+                    <div id="expenseCategories"></div>
+                    <button class="btn btn-primary btn-small" onclick="addExpenseCategory()">+ Add Expense Category</button>
+                </div>
+            </main>
+
+            <aside class="sidebar">
+                <div class="summary-card">
+                    <h3 class="section-title">📊 Budget Summary</h3>
+                    <div class="summary-item">
+                        <span>Total Income:</span>
+                        <span id="totalIncome" class="amount-positive">$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Expenses:</span>
+                        <span id="totalExpenses" class="amount-negative">$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Remaining to Allocate:</span>
+                        <span id="remainingAmount" class="amount-neutral">$0.00</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="budgetProgress"></div>
+                    </div>
+                    <div id="zeroBasedIndicator" class="zero-based-indicator zero-not-achieved">
+                        🎯 Assign every dollar a purpose!
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3 class="section-title">📈 Quick Stats</h3>
+                    <div class="summary-item">
+                        <span>Income Categories:</span>
+                        <span id="incomeCount">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Expense Categories:</span>
+                        <span id="expenseCount">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Line Items:</span>
+                        <span id="totalItems">0</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Zero-Based Budgeting</h3>
+                <p>Every dollar gets assigned a purpose. No money goes unallocated.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Excel Export</h3>
+                <p>Export your complete budget to Excel for advanced analysis and sharing.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>Multi-Month Planning</h3>
+                <p>Replicate your budget template across multiple future months instantly.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💾</div>
+                <h3>Template System</h3>
+                <p>Save and load budget templates for consistent monthly planning.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Mobile Responsive</h3>
+                <p>Access and edit your budget from any device, anywhere.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Privacy First</h3>
+                <p>All data stays in your browser. No server uploads or data tracking.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Budget data structure
+        let budgetData = {
+            month: '',
+            income: {},
+            expenses: {}
+        };
+
+        // Initialize the application
+        function init() {
+            const today = new Date();
+            const currentMonth = today.toISOString().slice(0, 7);
+            document.getElementById('currentMonth').value = currentMonth;
+            budgetData.month = currentMonth;
+
+            // Add default categories
+            addIncomeCategory('Salary');
+            addExpenseCategory('Housing');
+            addExpenseCategory('Transportation');
+            addExpenseCategory('Food');
+            addExpenseCategory('Savings');
+
+            updateSummary();
+        }
+
+        // Add income category
+        function addIncomeCategory(categoryName = '') {
+            const categoryId = 'income_' + Date.now();
+            budgetData.income[categoryId] = {
+                name: categoryName || 'New Income Source',
+                items: [{ description: '', amount: 0 }]
+            };
+            renderIncomeCategories();
+            updateSummary();
+        }
+
+        // Add expense category  
+        function addExpenseCategory(categoryName = '') {
+            const categoryId = 'expense_' + Date.now();
+            budgetData.expenses[categoryId] = {
+                name: categoryName || 'New Expense Category',
+                items: [{ description: '', amount: 0 }]
+            };
+            renderExpenseCategories();
+            updateSummary();
+        }
+
+        // Render income categories
+        function renderIncomeCategories() {
+            const container = document.getElementById('incomeCategories');
+            container.innerHTML = '';
+
+            Object.keys(budgetData.income).forEach(categoryId => {
+                const category = budgetData.income[categoryId];
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-group';
+                
+                const categoryTotal = category.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                
+                categoryDiv.innerHTML = `
+                    <div class="category-header">
+                        <input type="text" class="item-input category-name" value="${category.name}" 
+                               onchange="updateCategoryName('income', '${categoryId}', this.value)">
+                        <div class="category-total">$${categoryTotal.toFixed(2)}</div>
+                        <button class="btn btn-danger btn-small" onclick="deleteCategory('income', '${categoryId}')">🗑️</button>
+                    </div>
+                    <div id="items_${categoryId}"></div>
+                    <button class="btn btn-success btn-small" onclick="addItemToCategory('income', '${categoryId}')">+ Add Item</button>
+                `;
+                
+                container.appendChild(categoryDiv);
+                renderCategoryItems('income', categoryId);
+            });
+        }
+
+        // Render expense categories
+        function renderExpenseCategories() {
+            const container = document.getElementById('expenseCategories');
+            container.innerHTML = '';
+
+            Object.keys(budgetData.expenses).forEach(categoryId => {
+                const category = budgetData.expenses[categoryId];
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-group';
+                
+                const categoryTotal = category.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                
+                categoryDiv.innerHTML = `
+                    <div class="category-header">
+                        <input type="text" class="item-input category-name" value="${category.name}" 
+                               onchange="updateCategoryName('expenses', '${categoryId}', this.value)">
+                        <div class="category-total">$${categoryTotal.toFixed(2)}</div>
+                        <button class="btn btn-danger btn-small" onclick="deleteCategory('expenses', '${categoryId}')">🗑️</button>
+                    </div>
+                    <div id="items_${categoryId}"></div>
+                    <button class="btn btn-primary btn-small" onclick="addItemToCategory('expenses', '${categoryId}')">+ Add Item</button>
+                `;
+                
+                container.appendChild(categoryDiv);
+                renderCategoryItems('expenses', categoryId);
+            });
+        }
+
+        // Render items within a category
+        function renderCategoryItems(type, categoryId) {
+            const container = document.getElementById(`items_${categoryId}`);
+            const category = budgetData[type][categoryId];
+            
+            container.innerHTML = '';
+            
+            category.items.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item-row';
+                itemDiv.innerHTML = `
+                    <input type="text" class="item-input" placeholder="Description" value="${item.description}"
+                           onchange="updateItem('${type}', '${categoryId}', ${index}, 'description', this.value)">
+                    <input type="number" class="item-input amount-input" placeholder="0.00" value="${item.amount}"
+                           onchange="updateItem('${type}', '${categoryId}', ${index}, 'amount', this.value)" step="0.01">
+                    <button class="btn btn-danger btn-small" onclick="deleteItem('${type}', '${categoryId}', ${index})">🗑️</button>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // Update category name
+        function updateCategoryName(type, categoryId, newName) {
+            budgetData[type][categoryId].name = newName;
+            updateSummary();
+        }
+
+        // Update item
+        function updateItem(type, categoryId, itemIndex, field, value) {
+            budgetData[type][categoryId].items[itemIndex][field] = field === 'amount' ? parseFloat(value) || 0 : value;
+            
+            if (type === 'income') {
+                renderIncomeCategories();
+            } else {
+                renderExpenseCategories();
+            }
+            updateSummary();
+        }
+
+        // Add item to category
+        function addItemToCategory(type, categoryId) {
+            budgetData[type][categoryId].items.push({ description: '', amount: 0 });
+            renderCategoryItems(type, categoryId);
+            updateSummary();
+        }
+
+        // Delete item
+        function deleteItem(type, categoryId, itemIndex) {
+            budgetData[type][categoryId].items.splice(itemIndex, 1);
+            if (budgetData[type][categoryId].items.length === 0) {
+                budgetData[type][categoryId].items.push({ description: '', amount: 0 });
+            }
+            renderCategoryItems(type, categoryId);
+            updateSummary();
+        }
+
+        // Delete category
+        function deleteCategory(type, categoryId) {
+            if (confirm('Are you sure you want to delete this category?')) {
+                delete budgetData[type][categoryId];
+                if (type === 'income') {
+                    renderIncomeCategories();
+                } else {
+                    renderExpenseCategories();
+                }
+                updateSummary();
+            }
+        }
+
+        // Update summary
+        function updateSummary() {
+            const totalIncome = calculateTotal('income');
+            const totalExpenses = calculateTotal('expenses');
+            const remaining = totalIncome - totalExpenses;
+
+            document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
+            document.getElementById('remainingAmount').textContent = `$${remaining.toFixed(2)}`;
+
+            // Update remaining amount color
+            const remainingElement = document.getElementById('remainingAmount');
+            remainingElement.className = remaining === 0 ? 'amount-neutral' : 
+                                       remaining > 0 ? 'amount-positive' : 'amount-negative';
+
+            // Update zero-based indicator
+            const indicator = document.getElementById('zeroBasedIndicator');
+            if (remaining === 0) {
+                indicator.className = 'zero-based-indicator zero-achieved';
+                indicator.textContent = '🎉 Perfect! Zero-Based Budget Achieved!';
+            } else {
+                indicator.className = 'zero-based-indicator zero-not-achieved';
+                indicator.textContent = remaining > 0 ? 
+                    `💰 $${remaining.toFixed(2)} needs to be allocated` :
+                    `⚠️ Over budget by $${Math.abs(remaining).toFixed(2)}`;
+            }
+
+            // Update progress bar
+            const progress = totalIncome > 0 ? Math.min((totalExpenses / totalIncome) * 100, 100) : 0;
+            document.getElementById('budgetProgress').style.width = `${progress}%`;
+
+            // Update stats
+            document.getElementById('incomeCount').textContent = Object.keys(budgetData.income).length;
+            document.getElementById('expenseCount').textContent = Object.keys(budgetData.expenses).length;
+            
+            let totalItems = 0;
+            Object.values(budgetData.income).forEach(cat => totalItems += cat.items.length);
+            Object.values(budgetData.expenses).forEach(cat => totalItems += cat.items.length);
+            document.getElementById('totalItems').textContent = totalItems;
+        }
+
+        // Calculate total for income or expenses
+        function calculateTotal(type) {
+            let total = 0;
+            Object.values(budgetData[type]).forEach(category => {
+                category.items.forEach(item => {
+                    total += parseFloat(item.amount) || 0;
+                });
+            });
+            return total;
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            
+            // Create summary sheet
+            const summaryData = [
+                ['Use Money Well LLC - Zero-Based Budget'],
+                ['Month:', budgetData.month],
+                [''],
+                ['INCOME'],
+                ['Category', 'Description', 'Amount']
+            ];
+
+            Object.values(budgetData.income).forEach(category => {
+                category.items.forEach(item => {
+                    summaryData.push([category.name, item.description, item.amount]);
+                });
+            });
+
+            summaryData.push(['', 'Total Income:', calculateTotal('income')]);
+            summaryData.push(['']);
+            summaryData.push(['EXPENSES']);
+            summaryData.push(['Category', 'Description', 'Amount']);
+
+            Object.values(budgetData.expenses).forEach(category => {
+                category.items.forEach(item => {
+                    summaryData.push([category.name, item.description, item.amount]);
+                });
+            });
+
+            summaryData.push(['', 'Total Expenses:', calculateTotal('expenses')]);
+            summaryData.push(['', 'Remaining:', calculateTotal('income') - calculateTotal('expenses')]);
+
+            const ws = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Budget Summary');
+
+            // Create detailed sheets for income and expenses
+            const incomeSheet = createDetailedSheet('income');
+            XLSX.utils.book_append_sheet(wb, incomeSheet, 'Income Details');
+
+            const expenseSheet = createDetailedSheet('expenses');
+            XLSX.utils.book_append_sheet(wb, expenseSheet, 'Expense Details');
+
+            // Save the file
+            const fileName = `Budget_${budgetData.month}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // Create detailed sheet for income or expenses
+        function createDetailedSheet(type) {
+            const data = [
+                [`${type.charAt(0).toUpperCase() + type.slice(1)} - ${budgetData.month}`],
+                [''],
+                ['Category', 'Description', 'Amount', 'Category Total']
+            ];
+
+            Object.values(budgetData[type]).forEach(category => {
+                const categoryTotal = category.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                category.items.forEach((item, index) => {
+                    data.push([
+                        index === 0 ? category.name : '',
+                        item.description,
+                        item.amount,
+                        index === 0 ? categoryTotal : ''
+                    ]);
+                });
+                data.push(['', '', '', '']); // Empty row between categories
+            });
+
+            return XLSX.utils.aoa_to_sheet(data);
+        }
+
+        // Replicate month
+        function replicateMonth() {
+            const monthsToReplicate = prompt('How many future months would you like to replicate this budget to?', '3');
+            if (!monthsToReplicate || isNaN(monthsToReplicate)) return;
+
+            const currentDate = new Date(budgetData.month + '-01');
+            const wb = XLSX.utils.book_new();
+
+            for (let i = 1; i <= parseInt(monthsToReplicate); i++) {
+                const futureDate = new Date(currentDate);
+                futureDate.setMonth(futureDate.getMonth() + i);
+                const futureMonth = futureDate.toISOString().slice(0, 7);
+
+                const monthData = createMonthSheet(futureMonth);
+                XLSX.utils.book_append_sheet(wb, monthData, `Budget ${futureMonth}`);
+            }
+
+            const fileName = `Multi_Month_Budget_Template_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // Create month sheet template
+        function createMonthSheet(month) {
+            const data = [
+                [`Use Money Well LLC - Budget Template for ${month}`],
+                [''],
+                ['INCOME'],
+                ['Category', 'Description', 'Planned Amount', 'Actual Amount']
+            ];
+
+            Object.values(budgetData.income).forEach(category => {
+                category.items.forEach(item => {
+                    data.push([category.name
