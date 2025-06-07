@@ -3,786 +3,787 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Use Money Well LLC - Zero-Based Budget Planner</title>
+    <title>Budgeting Worksheet</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        /* --- [Brand Colors & Fonts] --- */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #2c5530 0%, #1a4d1f 100%);
-            min-height: 100vh;
-            color: #333;
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #27ae60;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
         }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
         .container {
-            max-width: 1400px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .instructions {
+            background-color: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent-color);
+        }
+        
+        .budget-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .section-title {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
         }
-        .branding-block {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
-        .logo {
-            font-size: 2.5rem;
+        
+        .section-title button {
+            background-color: white;
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
             font-weight: bold;
-            background: linear-gradient(45deg, #2c5530, #4a7c59);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
         }
-        .brand-info {
+        
+        .section-title button:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .form-group {
             display: flex;
-            flex-direction: column;
-            gap: 2px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
         }
-        .brand-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #2c5530;
-            letter-spacing: 0.5px;
+        
+        .form-group:last-child {
+            border-bottom: none;
         }
-        .brand-tagline {
-            font-size: 1.05rem;
-            color: #4a7c59;
+        
+        .form-group label {
+            flex-basis: 60%;
             font-weight: 500;
         }
-        .controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .month-selector {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .month-input {
-            padding: 10px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        .month-input:focus {
-            outline: none;
-            border-color: #2c5530;
-            box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
-        }
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-primary {
-            background: linear-gradient(45deg, #2c5530, #4a7c59);
-            color: white;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
-        }
-        .btn-success {
-            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
-            color: white;
-        }
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(86, 171, 47, 0.3);
-        }
-        .btn-danger {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-        }
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
-        }
-        .btn-small {
-            padding: 8px 15px;
-            font-size: 0.85rem;
-        }
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        .budget-section {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-        .income-section, .expense-section {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .category-group {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-        .category-group:hover {
-            border-color: #2c5530;
-            box-shadow: 0 4px 15px rgba(44, 85, 48, 0.1);
-        }
-        .category-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .category-name {
-            flex: 1;
-            font-weight: 600;
-            font-size: 1.1rem;
-            background: transparent;
-            border: none;
-            color: #333;
-        }
-        .category-name:focus {
-            outline: none;
-            background: white;
-            border: 2px solid #2c5530;
-            border-radius: 8px;
-            padding: 5px 10px;
-        }
-        .category-total {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2c5530;
-            background: white;
-            padding: 8px 15px;
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-        }
-        .item-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        .item-input {
-            padding: 10px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-        .item-input:focus {
-            outline: none;
-            border-color: #2c5530;
-            box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
-        }
-        .item-input:first-child {
-            flex: 2;
-        }
-        .amount-input {
-            flex: 1;
+        
+        .form-group input {
+            flex-basis: 25%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
             text-align: right;
         }
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        
+        .form-group input[type="text"] {
+            flex-basis: 30%;
+            text-align: left;
         }
-        .summary-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .summary-item {
+        
+        .custom-category {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #e9ecef;
-            font-size: 1.1rem;
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-color);
         }
-        .summary-item:last-child {
-            border-bottom: none;
-            font-weight: bold;
-            font-size: 1.2rem;
+        
+        .custom-category input[type="text"] {
+            flex-basis: 50%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            background-color: white;
         }
-        .amount-positive {
-            color: #28a745;
-            font-weight: bold;
+        
+        .custom-category input[type="number"] {
+            flex-basis: 25%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: right;
+            margin-right: 10px;
+            background-color: white;
         }
-        .amount-negative {
-            color: #dc3545;
-            font-weight: bold;
+        
+        .custom-category button {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            flex-shrink: 0;
         }
-        .amount-neutral {
-            color: #2c5530;
-            font-weight: bold;
+        
+        .custom-category button:hover {
+            background-color: #c0392b;
         }
-        .progress-bar {
-            height: 10px;
-            background: #e9ecef;
-            border-radius: 5px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(45deg, #2c5530, #4a7c59);
-            transition: width 0.3s ease;
-            border-radius: 5px;
-        }
-        .zero-based-indicator {
-            text-align: center;
+        
+        .add-category-form {
+            display: none;
+            margin-top: 10px;
             padding: 15px;
-            border-radius: 10px;
-            font-weight: bold;
-            margin-top: 15px;
+            background-color: var(--light-color);
+            border-radius: 4px;
+            border: 2px dashed #bdc3c7;
         }
-        .zero-achieved {
-            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+        
+        .add-category-form.active {
+            display: block;
+        }
+        
+        .add-category-form input {
+            width: 60%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        
+        .add-category-form button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .add-category-form button:hover {
+            background-color: #219653;
+        }
+        
+        .summary {
+            background-color: var(--light-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .result {
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 15px 0;
+            text-align: center;
+        }
+        
+        .positive {
+            color: var(--accent-color);
+        }
+        
+        .negative {
+            color: var(--danger-color);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .primary-button {
+            background-color: var(--accent-color);
             color: white;
         }
-        .zero-not-achieved {
-            background: linear-gradient(45deg, #ffa726, #ffcc02);
-            color: #333;
+        
+        .primary-button:hover {
+            background-color: #219653;
+            transform: translateY(-1px);
         }
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 40px;
+        
+        .secondary-button {
+            background-color: var(--secondary-color);
+            color: white;
         }
-        .feature-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
+        
+        .secondary-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-1px);
+        }
+        
+        .reset-button {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        .reset-button:hover {
+            background-color: #7f8c8d;
+            transform: translateY(-1px);
+        }
+        
+        .chart-container {
+            width: 100%;
+            margin: 20px 0;
+            min-height: 400px;
+        }
+        
+        canvas {
+            max-width: 100%;
+        }
+        
+        footer {
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            padding: 20px;
+            margin-top: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 0 0 8px 8px;
+            font-size: 0.9rem;
         }
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        
+        .email-form {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--light-color);
+            border-radius: 8px;
         }
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-        .feature-card h3 {
-            font-size: 1.3rem;
+        
+        .email-form input {
+            width: 100%;
+            padding: 10px;
             margin-bottom: 10px;
-            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
-        .feature-card p {
-            color: #666;
-            line-height: 1.6;
-        }
-        .footer {
-            margin-top: 50px;
-            padding: 22px 0 10px 0;
-            text-align: center;
-            color: #555;
-            font-size: 1rem;
-            background: rgba(255,255,255,0.92);
-            border-radius: 16px;
-            box-shadow: 0 2px 12px rgba(44,85,48,0.07);
-        }
-        .footer .footer-logo {
-            font-size: 1.6rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, #2c5530, #4a7c59);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 6px;
-            display: inline-block;
-        }
-        .footer-contact {
-            margin-top: 6px;
-            font-size: 0.98rem;
-        }
-        @media (max-width: 1024px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-            .sidebar {
-                order: -1;
-            }
-        }
+        
         @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-            .controls {
-                justify-content: center;
-            }
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-            .item-row {
-                flex-direction: column;
-            }
-            .item-input {
-                width: 100%;
-            }
-        }
-        @media (max-width: 480px) {
             .container {
                 padding: 10px;
             }
-            .header, .summary-card, .income-section, .expense-section {
-                padding: 15px;
-            }
-            .logo {
-                font-size: 2rem;
-            }
-            .controls {
+            
+            .form-group {
                 flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .form-group label {
+                margin-bottom: 5px;
+            }
+            
+            .form-group input {
                 width: 100%;
             }
-            .controls .btn {
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .custom-category {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .custom-category input {
                 width: 100%;
-                justify-content: center;
+                margin-right: 0;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="branding-block">
-                <div class="logo">💰</div>
-                <div class="brand-info">
-                    <div class="brand-name">Use Money Well LLC</div>
-                    <div class="brand-tagline">Zero-Based Budget Planner</div>
-                </div>
-            </div>
-            <div class="controls">
-                <div class="month-selector">
-                    <label for="currentMonth">Budget Month:</label>
-                    <input type="month" id="currentMonth" class="month-input">
-                </div>
-                <button class="btn btn-success" id="exportExcelBtn">
-                    📊 Export to Excel
-                </button>
-                <button class="btn btn-primary" id="replicateMonthBtn">
-                    📅 Replicate to Future Months
-                </button>
-                <button class="btn btn-primary" id="saveTemplateBtn">
-                    💾 Save as Template
-                </button>
-                <button class="btn btn-primary" id="loadTemplateBtn">
-                    📁 Load Template
-                </button>
-            </div>
+        <header>
+            <h1>Monthly Budgeting Worksheet</h1>
+            <p>Plan your monthly finances and track your spending</p>
         </header>
-
-        <div class="main-grid">
-            <main class="budget-section">
-                <div class="income-section">
-                    <h2 class="section-title">💵 Income Sources</h2>
-                    <div id="incomeCategories"></div>
-                    <button class="btn btn-success btn-small" id="addIncomeCategoryBtn">+ Add Income Category</button>
-                </div>
-                <div class="expense-section">
-                    <h2 class="section-title">💳 Expenses & Allocations</h2>
-                    <div id="expenseCategories"></div>
-                    <button class="btn btn-primary btn-small" id="addExpenseCategoryBtn">+ Add Expense Category</button>
-                </div>
-            </main>
-            <aside class="sidebar">
-                <div class="summary-card">
-                    <h3 class="section-title">📊 Budget Summary</h3>
-                    <div class="summary-item">
-                        <span>Total Income:</span>
-                        <span id="totalIncome" class="amount-positive">$0.00</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Total Expenses:</span>
-                        <span id="totalExpenses" class="amount-negative">$0.00</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Remaining to Allocate:</span>
-                        <span id="remainingAmount" class="amount-neutral">$0.00</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="budgetProgress"></div>
-                    </div>
-                    <div id="zeroBasedIndicator" class="zero-based-indicator zero-not-achieved">
-                        🎯 Assign every dollar a purpose!
-                    </div>
-                </div>
-                <div class="summary-card">
-                    <h3 class="section-title">📈 Quick Stats</h3>
-                    <div class="summary-item">
-                        <span>Income Categories:</span>
-                        <span id="incomeCount">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Expense Categories:</span>
-                        <span id="expenseCount">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Total Line Items:</span>
-                        <span id="totalItems">0</span>
-                    </div>
-                </div>
-            </aside>
+        
+        <div class="instructions">
+            <h3>How to Use This Budgeting Worksheet:</h3>
+            <ol>
+                <li>Enter your expected monthly income in the Income section.</li>
+                <li>Fill in your planned expenses for each category.</li>
+                <li>Add custom categories as needed with the "+ Add Category" button in each section.</li>
+                <li>Click "Calculate Budget" to see your budget summary and expense breakdown.</li>
+                <li>Save your budget as a PDF, Excel file, or email it to yourself.</li>
+            </ol>
         </div>
-
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <h3>Zero-Based Budgeting</h3>
-                <p>Every dollar gets assigned a purpose. No money goes unallocated.</p>
+        
+        <div id="budget-worksheet" class="budget-form">
+            <div class="section">
+                <h2 class="section-title">
+                    Monthly Income
+                    <button type="button" class="add-category-btn" data-section="income">+ Add Category</button>
+                </h2>
+                <div class="form-group">
+                    <label for="primary-income">Primary Job Income</label>
+                    <input type="number" id="primary-income" class="income" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="secondary-income">Secondary Job Income</label>
+                    <input type="number" id="secondary-income" class="income" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="other-income">Other Income (benefits, investments, etc.)</label>
+                    <input type="number" id="other-income" class="income" value="0" step="0.01">
+                </div>
+                <div id="custom-income-categories"></div>
+                <div class="add-category-form" id="add-income-category-form">
+                    <input type="text" placeholder="Category Name" id="new-income-category-name">
+                    <button type="button" id="confirm-add-income-category">Add</button>
+                </div>
+                <div class="form-group">
+                    <label><strong>Total Monthly Income</strong></label>
+                    <input type="number" id="total-income" readonly>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Excel Export</h3>
-                <p>Export your complete budget to Excel for advanced analysis and sharing.</p>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    Housing Expenses
+                    <button type="button" class="add-category-btn" data-section="housing">+ Add Category</button>
+                </h2>
+                <div class="form-group">
+                    <label for="rent">Rent/Mortgage</label>
+                    <input type="number" id="rent" class="expense housing" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="utilities">Utilities (water, electricity, gas)</label>
+                    <input type="number" id="utilities" class="expense housing" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="internet">Internet/Cable</label>
+                    <input type="number" id="internet" class="expense housing" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="home-maintenance">Home Maintenance/Repairs</label>
+                    <input type="number" id="home-maintenance" class="expense housing" value="0" step="0.01">
+                </div>
+                <div id="custom-housing-categories"></div>
+                <div class="add-category-form" id="add-housing-category-form">
+                    <input type="text" placeholder="Category Name" id="new-housing-category-name">
+                    <button type="button" id="confirm-add-housing-category">Add</button>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📅</div>
-                <h3>Multi-Month Planning</h3>
-                <p>Replicate your budget template across multiple future months instantly.</p>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    Transportation Expenses
+                    <button type="button" class="add-category-btn" data-section="transportation">+ Add Category</button>
+                </h2>
+                <div class="form-group">
+                    <label for="car-payment">Car Payment</label>
+                    <input type="number" id="car-payment" class="expense transportation" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="gas">Gas/Fuel</label>
+                    <input type="number" id="gas" class="expense transportation" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="car-insurance">Car Insurance</label>
+                    <input type="number" id="car-insurance" class="expense transportation" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="public-transport">Public Transportation</label>
+                    <input type="number" id="public-transport" class="expense transportation" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="car-maintenance">Car Maintenance/Repairs</label>
+                    <input type="number" id="car-maintenance" class="expense transportation" value="0" step="0.01">
+                </div>
+                <div id="custom-transportation-categories"></div>
+                <div class="add-category-form" id="add-transportation-category-form">
+                    <input type="text" placeholder="Category Name" id="new-transportation-category-name">
+                    <button type="button" id="confirm-add-transportation-category">Add</button>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">💾</div>
-                <h3>Template System</h3>
-                <p>Save and load budget templates for consistent monthly planning.</p>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    Food & Personal Care
+                    <button type="button" class="add-category-btn" data-section="food">+ Add Category</button>
+                </h2>
+                <div class="form-group">
+                    <label for="groceries">Groceries</label>
+                    <input type="number" id="groceries" class="expense food" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="dining-out">Dining Out/Takeout</label>
+                    <input type="number" id="dining-out" class="expense food" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="personal-care">Personal Care (toiletries, haircuts, etc.)</label>
+                    <input type="number" id="personal-care" class="expense food" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="clothing">Clothing</label>
+                    <input type="number" id="clothing" class="expense food" value="0" step="0.01">
+                </div>
+                <div id="custom-food-categories"></div>
+                <div class="add-category-form" id="add-food-category-form">
+                    <input type="text" placeholder="Category Name" id="new-food-category-name">
+                    <button type="button" id="confirm-add-food-category">Add</button>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📱</div>
-                <h3>Mobile Responsive</h3>
-                <p>Access and edit your budget from any device, anywhere.</p>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    Healthcare
+                    <button type="button" class="add-category-btn" data-section="healthcare">+ Add Category</button>
+                </h2>
+                <div class="form-group">
+                    <label for="health-insurance">Health Insurance</label>
+                    <input type="number" id="health-insurance" class="expense healthcare" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="medications">Medications</label>
+                    <input type="number" id="medications" class="expense healthcare" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="doctor-visits">Doctor Visits/Co-pays</label>
+                    <input type="number" id="doctor-visits" class="expense healthcare" value="0" step="0.01">
+                </div>
+                <div id="custom-healthcare-categories"></div>
+                <div class="add-category-form" id="add-healthcare-category-form">
+                    <input type="text" placeholder="Category Name" id="new-healthcare-category-name">
+                    <button type="button" id="confirm-add-healthcare-category">Add</button>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🔒</div>
-                <h3>Privacy First</h3>
-                <p>All data stays in your browser. No server uploads or data tracking.</p>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    Debt Payments
+                    <button type="button" class="add-category-btn" data-section="debt">+ Add Category</button>
+                </h2>
+                <div class="form-group">
+                    <label for="credit-card">Credit Card Payments</label>
+                    <input type="number" id="credit-card" class="expense debt" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="student-loans">Student Loans</label>
+                    <input type="number" id="student-loans" class="expense debt" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="personal-loans">Personal Loans</label>
+                    <input type="number" id="personal-loans" class="expense debt" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="other-debt">Other Debt Payments</label>
+                    <input type="number" id="other-debt" class="expense debt" value="0" step="0.01">
+                </div>
+                <div id="custom-debt-categories"></div>
+                <div class="add-category-form" id="add-debt-category-form">
+                    <input type="text" placeholder="Category Name" id="new-debt-category-name">
+                    <button type="button" id="confirm-add-debt-category">Add</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    Savings & Investments
+                    <button type="button" class="add-category-btn" data-section="savings">+ Add Category</button>
+                </h2>
+                <div class="form-group">
+                    <label for="emergency-fund">Emergency Fund</label>
+                    <input type="number" id="emergency-fund" class="expense savings" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="retirement">Retirement Contributions</label>
+                    <input type="number" id="retirement" class="expense savings" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="other-savings">Other Savings Goals</label>
+                    <input type="number" id="other-savings" class="expense savings" value="0" step="0.01">
+                </div>
+                <div id="custom-savings-categories"></div>
+                <div class="add-category-form" id="add-savings-category-form">
+                    <input type="text" placeholder="Category Name" id="new-savings-category-name">
+                    <button type="button" id="confirm-add-savings-category">Add</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    Entertainment & Leisure
+                    <button type="button" class="add-category-btn" data-section="entertainment">+ Add Category</button>
+                </h2>
+                <div class="form-group">
+                    <label for="subscriptions">Subscriptions & Memberships</label>
+                    <input type="number" id="subscriptions" class="expense entertainment" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="hobbies">Hobbies</label>
+                    <input type="number" id="hobbies" class="expense entertainment" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="entertainment">Entertainment (movies, concerts, etc.)</label>
+                    <input type="number" id="entertainment" class="expense entertainment" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="vacation">Vacation/Travel</label>
+                    <input type="number" id="vacation" class="expense entertainment" value="0" step="0.01">
+                </div>
+                <div id="custom-entertainment-categories"></div>
+                <div class="add-category-form" id="add-entertainment-category-form">
+                    <input type="text" placeholder="Category Name" id="new-entertainment-category-name">
+                    <button type="button" id="confirm-add-entertainment-category">Add</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    Miscellaneous
+                    <button type="button" class="add-category-btn" data-section="misc">+ Add Category</button>
+                </h2>
+                <div class="form-group">
+                    <label for="gifts">Gifts & Donations</label>
+                    <input type="number" id="gifts" class="expense misc" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="education">Education</label>
+                    <input type="number" id="education" class="expense misc" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="pet-care">Pet Care</label>
+                    <input type="number" id="pet-care" class="expense misc" value="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="miscellaneous">Other Miscellaneous Expenses</label>
+                    <input type="number" id="miscellaneous" class="expense misc" value="0" step="0.01">
+                </div>
+                <div id="custom-misc-categories"></div>
+                <div class="add-category-form" id="add-misc-category-form">
+                    <input type="text" placeholder="Category Name" id="new-misc-category-name">
+                    <button type="button" id="confirm-add-misc-category">Add</button>
+                </div>
+            </div>
+            
+            <div class="summary">
+                <h2>Budget Summary</h2>
+                <div class="form-group">
+                    <label><strong>Total Monthly Income</strong></label>
+                    <input type="number" id="summary-income" readonly>
+                </div>
+                <div class="form-group">
+                    <label><strong>Total Monthly Expenses</strong></label>
+                    <input type="number" id="total-expenses" readonly>
+                </div>
+                <div class="result" id="budget-result"></div>
+                
+                <div class="chart-container">
+                    <canvas id="expense-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="primary-button" id="calculate-btn">Calculate Budget</button>
+                <button class="secondary-button" id="save-pdf-btn">Save as PDF</button>
+                <button class="secondary-button" id="save-excel-btn">Save as Excel</button>
+                <button class="secondary-button" id="email-btn">Email to Myself</button>
+                <button class="reset-button" id="reset-btn">Reset Form</button>
+            </div>
+            
+            <div class="email-form" id="email-form">
+                <h3>Email Budget Worksheet</h3>
+                <input type="email" id="email-address" placeholder="Enter your email address">
+                <button class="primary-button" id="send-email-btn">Send Email</button>
             </div>
         </div>
-
-        <footer class="footer">
-            <div class="footer-logo">💰 Use Money Well LLC</div>
-            <div>
-                <span>Professional Budget Planning Solutions</span>
-            </div>
-            <div style="margin-top:6px;font-size:0.93rem;color:#888;">
-                &copy; 2025 Use Money Well LLC. All rights reserved.
-            </div>
+        
+        <footer>
+            &copy; 2025 Use Money Well LLC. All rights reserved.
         </footer>
     </div>
 
     <script>
-        // Budget data structure
-        let budgetData = {
-            month: '',
-            income: {},
-            expenses: {}
-        };
-
-        // Initialize the application
-        function init() {
-            const today = new Date();
-            const currentMonth = today.toISOString().slice(0, 7);
-            document.getElementById('currentMonth').value = currentMonth;
-            budgetData.month = currentMonth;
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all form elements
+            let incomeInputs = document.querySelectorAll('.income');
+            let expenseInputs = document.querySelectorAll('.expense');
+            const totalIncomeElement = document.getElementById('total-income');
+            const totalExpensesElement = document.getElementById('total-expenses');
+            const summaryIncomeElement = document.getElementById('summary-income');
+            const budgetResultElement = document.getElementById('budget-result');
             
-            // Add default categories
-            addIncomeCategory('Salary');
-            addExpenseCategory('Housing');
-            addExpenseCategory('Transportation');
-            addExpenseCategory('Food');
-            addExpenseCategory('Savings');
+            // Get buttons
+            const calculateBtn = document.getElementById('calculate-btn');
+            const savePdfBtn = document.getElementById('save-pdf-btn');
+            const saveExcelBtn = document.getElementById('save-excel-btn');
+            const emailBtn = document.getElementById('email-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const emailForm = document.getElementById('email-form');
+            const sendEmailBtn = document.getElementById('send-email-btn');
             
-            updateSummary();
-            setupEventListeners();
-        }
-
-        // Set up all event listeners
-        function setupEventListeners() {
-            // Month change
-            document.getElementById('currentMonth').addEventListener('change', function(e) {
-                budgetData.month = e.target.value;
-                updateSummary();
-            });
-
-            // Main action buttons
-            document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
-            document.getElementById('replicateMonthBtn').addEventListener('click', replicateMonth);
-            document.getElementById('saveTemplateBtn').addEventListener('click', saveTemplate);
-            document.getElementById('loadTemplateBtn').addEventListener('click', loadTemplate);
-            document.getElementById('addIncomeCategoryBtn').addEventListener('click', () => addIncomeCategory());
-            document.getElementById('addExpenseCategoryBtn').addEventListener('click', () => addExpenseCategory());
-
-            // Event delegation for dynamic content
-            document.addEventListener('click', handleClick);
-            document.addEventListener('input', handleInput);
-        }
-
-        // Handle all click events
-        function handleClick(e) {
-            const action = e.target.dataset.action;
-            const type = e.target.dataset.type;
-            const category = e.target.dataset.category;
-            const index = e.target.dataset.index;
-
-            switch(action) {
-                case 'delete-category':
-                    deleteCategory(type, category);
-                    break;
-                case 'add-item':
-                    addItem(type, category);
-                    break;
-                case 'delete-item':
-                    deleteItem(type, category, index);
-                    break;
-            }
-        }
-
-        // Handle all input events
-        function handleInput(e) {
-            const type = e.target.dataset.type;
-            const category = e.target.dataset.category;
-            const index = e.target.dataset.index;
-
-            if (e.target.classList.contains('category-name')) {
-                budgetData[type][category].name = e.target.value;
-            } else if (e.target.classList.contains('item-desc')) {
-                budgetData[type][category].items[index].description = e.target.value;
-            } else if (e.target.classList.contains('item-amount')) {
-                budgetData[type][category].items[index].amount = parseFloat(e.target.value) || 0;
-                updateSummary();
-            }
-        }
-
-        // Add income category
-        function addIncomeCategory(categoryName = '') {
-            const categoryId = 'income_' + Date.now();
-            budgetData.income[categoryId] = {
-                name: categoryName || 'New Income Source',
-                items: [{ description: '', amount: 0 }]
+            // Get add category buttons
+            const addCategoryBtns = document.querySelectorAll('.add-category-btn');
+            
+            // Track custom categories
+            const customCategories = {
+                income: [],
+                housing: [],
+                transportation: [],
+                food: [],
+                healthcare: [],
+                debt: [],
+                savings: [],
+                entertainment: [],
+                misc: []
             };
-            renderIncomeCategories();
-            updateSummary();
-        }
-
-        // Add expense category
-        function addExpenseCategory(categoryName = '') {
-            const categoryId = 'expense_' + Date.now();
-            budgetData.expenses[categoryId] = {
-                name: categoryName || 'New Expense Category',
-                items: [{ description: '', amount: 0 }]
+            
+            // Add category counters
+            const categoryCounters = {
+                income: 0,
+                housing: 0,
+                transportation: 0,
+                food: 0,
+                healthcare: 0,
+                debt: 0,
+                savings: 0,
+                entertainment: 0,
+                misc: 0
             };
-            renderExpenseCategories();
-            updateSummary();
-        }
-
-        // Delete category
-        function deleteCategory(type, categoryId) {
-            if (confirm('Are you sure you want to delete this category?')) {
-                delete budgetData[type][categoryId];
-                if (type === 'income') {
-                    renderIncomeCategories();
-                } else {
-                    renderExpenseCategories();
-                }
-                updateSummary();
+            
+            // Chart variables
+            let expenseChart;
+            
+            // Function to update input queries
+            function updateInputQueries() {
+                incomeInputs = document.querySelectorAll('.income');
+                expenseInputs = document.querySelectorAll('.expense');
             }
-        }
-
-        // Add item to category
-        function addItem(type, categoryId) {
-            budgetData[type][categoryId].items.push({ description: '', amount: 0 });
-            renderCategoryItems(type, categoryId);
-            updateSummary();
-        }
-
-        // Delete item from category
-        function deleteItem(type, categoryId, index) {
-            if (budgetData[type][categoryId].items.length > 1) {
-                budgetData[type][categoryId].items.splice(index, 1);
-                renderCategoryItems(type, categoryId);
-                updateSummary();
+            
+            // Function to add event listeners to inputs
+            function addInputEventListeners() {
+                updateInputQueries();
+                
+                incomeInputs.forEach(input => {
+                    input.removeEventListener('input', calculateTotalIncome);
+                    input.addEventListener('input', calculateTotalIncome);
+                });
+                
+                expenseInputs.forEach(input => {
+                    input.removeEventListener('input', calculateTotalExpenses);
+                    input.addEventListener('input', calculateTotalExpenses);
+                });
             }
-        }
-
-        // Render income categories
-        function renderIncomeCategories() {
-            const container = document.getElementById('incomeCategories');
-            container.innerHTML = '';
             
-            Object.keys(budgetData.income).forEach(categoryId => {
-                const category = budgetData.income[categoryId];
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = 'category-group';
-                
-                const categoryTotal = category.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-                
-                categoryDiv.innerHTML = `
-                    <div class="category-header">
-                        <input type="text" class="item-input category-name" data-type="income" data-category="${categoryId}" value="${category.name}">
-                        <div class="category-total">$${categoryTotal.toFixed(2)}</div>
-                        <button class="btn btn-danger btn-small" data-action="delete-category" data-type="income" data-category="${categoryId}">🗑️</button>
-                    </div>
-                    <div id="items_${categoryId}"></div>
-                    <button class="btn btn-success btn-small" data-action="add-item" data-type="income" data-category="${categoryId}">+ Add Item</button>
-                `;
-                
-                container.appendChild(categoryDiv);
-                renderCategoryItems('income', categoryId);
-            });
-        }
-
-        // Render expense categories
-        function renderExpenseCategories() {
-            const container = document.getElementById('expenseCategories');
-            container.innerHTML = '';
+            // Initial event listeners
+            addInputEventListeners();
             
-            Object.keys(budgetData.expenses).forEach(categoryId => {
-                const category = budgetData.expenses[categoryId];
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = 'category-group';
-                
-                const categoryTotal = category.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-                
-                categoryDiv.innerHTML = `
-                    <div class="category-header">
-                        <input type="text" class="item-input category-name" data-type="expenses" data-category="${categoryId}" value="${category.name}">
-                        <div class="category-total">$${categoryTotal.toFixed(2)}</div>
-                        <button class="btn btn-danger btn-small" data-action="delete-category" data-type="expenses" data-category="${categoryId}">🗑️</button>
-                    </div>
-                    <div id="items_${categoryId}"></div>
-                    <button class="btn btn-primary btn-small" data-action="add-item" data-type="expenses" data-category="${categoryId}">+ Add Item</button>
-                `;
-                
-                container.appendChild(categoryDiv);
-                renderCategoryItems('expenses', categoryId);
+            // Calculate button event
+            calculateBtn.addEventListener('click', () => {
+                calculateTotalIncome();
+                calculateTotalExpenses();
+                calculateBudgetResult();
+                createExpenseChart();
             });
-        }
-
-        // Render items within a category
-        function renderCategoryItems(type, categoryId) {
-            const container = document.getElementById(`items_${categoryId}`);
-            const category = budgetData[type][categoryId];
-            container.innerHTML = '';
             
-            category.items.forEach((item, index) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'item-row';
-                itemDiv.innerHTML = `
-                    <input type="text" class="item-input item-desc" data-type="${type}" data-category="${categoryId}" data-index="${index}" value="${item.description}" placeholder="Description">
-                    <input type="number" class="item-input amount-input item-amount" data-type="${type}" data-category="${categoryId}" data-index="${index}" value="${item.amount}" placeholder="0.00" step="0.01">
-                    <button class="btn btn-danger btn-small" data-action="delete-item" data-type="${type}" data-category="${categoryId}" data-index="${index}">🗑️</button>
-                `;
-                container.appendChild(itemDiv);
+            // Reset button event
+            resetBtn.addEventListener('click', () => {
+                resetForm();
             });
-        }
-
-        // Update summary display
-        function updateSummary() {
-            const totalIncome = calculateTotal('income');
-            const totalExpenses = calculateTotal('expenses');
-            const remaining = totalIncome - totalExpenses;
-
-            document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
-            document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
-            document.getElementById('remainingAmount').textContent = `$${remaining.toFixed(2)}`;
-
-            const remainingElement = document.getElementById('remainingAmount');
-            remainingElement.className = remaining === 0 ? 'amount-neutral' :
-                remaining > 0 ? 'amount-positive' : 'amount-negative';
-
-            const indicator = document.getElementById('zeroBasedIndicator');
-            if (remaining === 0) {
-                indicator.className = 'zero-based-indicator zero-achieved';
-                indicator.textContent = '🎉 Perfect! Zero-Based Budget Achieved!';
-            } else {
-                indicator.className = 'zero-based-indicator zero-not-achieved';
-                indicator.textContent = remaining > 0 ?
-                    `💰 $${remaining.toFixed(2)} needs to be allocated` :
-                    `⚠️ Over budget by $${Math.abs(remaining).toFixed(2)}`;
-            }
-
-            const progress = totalIncome > 0 ? Math.min((totalExpenses / totalIncome) * 100, 100) : 0;
-            document.getElementById('budgetProgress').style.width = `${progress}%`;
-
-            document.getElementById('incomeCount').textContent = Object.keys(budgetData.income).length;
-            document.getElementById('expenseCount').textContent = Object.keys(budgetData.expenses).length;
             
-            let totalItems = 0;
-            Object.values(budgetData.income).forEach(cat => totalItems += cat.items.length);
-            Object.values(budgetData.expenses).forEach(cat => totalItems += cat.items.length);
-            document.getElementById('totalItems').textContent = totalItems;
-
-            // Update category totals
-            updateCategoryTotals();
-        }
-
-        // Update category total displays
-        function updateCategoryTotals() {
-            Object.keys(budgetData.income).forEach(categoryId => {
-                const category = budgetData.income[categoryId];
-                const total = category.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-                const totalElement = document.querySelector(`[data-category="${categoryId}"] .category-total`);
-                if (totalElement) {
-                    totalElement.textContent = `$${total.toFixed(2)}`;
-                }
+            // Save PDF button event
+            savePdfBtn.addEventListener('click', () => {
+                generatePDF();
             });
-
-            Object.keys(budgetData.expenses).forEach(categoryId => {
-                const category = budgetData.expenses[categoryId];
-                const total = category.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-                const totalElement = document.querySelector(`[data-category="${categoryId}"] .category-total`);
-                if (totalElement) {
-                    totalElement.textContent = `$${total.toFixed(2)}`;
-                }
+            
+            // Save Excel button event
+            saveExcelBtn.addEventListener('click', () => {
+                generateExcel();
             });
-        }
-
-        // Calculate total for income or expenses
-        function calculateTotal(type) {
-            let total = 0;
-            Object.values(budgetData[type]).forEach(category => {
-                category.items.forEach(item => {
-                    total += parse
+            
+            // Email button event
+            emailBtn.addEventListener('click', () => {
+                toggleEmailForm();
+            });
+            
+            // Send Email button event
+            sendEmailBtn.addEventListener('click', () => {
+                sendEmail();
+            });
+            
+            // Add Category button events
+            addCategoryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const section = this.dataset.section;
+                    const form = document.getElementById(`add-${section}-category-form`);
+                    
+                    // Toggle form visibility
+                    if (form.style.display === 'block') {
+                        form.style.display = 'none';
+                    } else {
+                        form.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Add confirm add category button events
+            document.querySelectorAll('[id^="confirm-add-"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sectionId = this.id.replace('confirm-add-', '').replace('-category', '');
+                    addCustomCategory(sectionId);
+                });
+            });
+            
+            // Function to add custom category
+            function addCustomCategory(section) {
+                const categoryNameInput = document.getElementById(`new-
